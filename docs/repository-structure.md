@@ -16,7 +16,7 @@ README.md
 ROADMAP.md
 ```
 
-第三方源码统一放在本地 `external/`，该目录整体 Git 忽略，不属于仓库发布内容。
+第三方源码原则上不进入 Git。文档解析 Track 使用的 OmniDocBench 官方评测工具保存在本地 `document-parsing/OmniDocBench/`，该目录整体 Git 忽略，不属于仓库发布内容。
 
 ## 2. Track 自包含原则
 

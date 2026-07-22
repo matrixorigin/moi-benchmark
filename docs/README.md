@@ -2,6 +2,7 @@
 
 本目录只保存跨 Track 内容：
 
+- `benchmark-plan-summary.md`：Memory、RAG、NLP2SQL 和文档解析的计划、工作量、费用及服务器预算汇总；
 - `repository-structure.md`：五 Track 目录与留痕边界；
 - `decisions/`：影响多个 Track 或整个仓库的 ADR；
 - `progress/`：项目级阶段记录；
