@@ -1,7 +1,12 @@
 # RAG Benchmark Track
 
-状态：Track 骨架已建立，方案待创建。
+状态：端到端 Benchmark 方案草稿和本地语料已迁入。
 
 本 Track 的全部材料必须保存在本目录：`plans/`、`research/`、`benchmark/`、`datasets/`、`systems/`、`runs/`、`reports/`、`decisions/`、`progress/`。
 
-第一步是形成可审阅的研究与方案草稿；方案通过前不冻结竞品、任务、指标或排期。
+## 当前材料
+
+- [评测方案草稿](plans/drafts/v0.1.md)
+- 本地评测语料：`datasets/downloads/corpus/`（Git 忽略）
+
+方案通过前不冻结竞品、任务、指标或排期。

@@ -7,14 +7,23 @@ planned_systems:
   - id: moi-nlp2sql
     role: system_under_test
     revision: null
-  - id: db-gpt
+  - id: wren-ai-cloud
     role: product_candidate
     revision: null
-  - id: xiyan-sql
-    role: method_candidate
+  - id: chat2db
+    role: product_candidate
     revision: null
-  - id: reforce
-    role: method_candidate
+  - id: xiyan-gbi
+    role: product_candidate
+    revision: null
+  - id: vanna
+    role: optional_product_candidate
+    revision: null
+  - id: db-gpt
+    role: optional_product_candidate
+    revision: null
+  - id: xiyan-sql
+    role: optional_method_candidate
     revision: null
 
 note: Candidate roles and versions remain unapproved until the NLP2SQL plan review is complete.

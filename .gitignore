@@ -1,5 +1,5 @@
-# Local external source checkouts; provenance is tracked inside each Track.
-/external/
+# Local third-party source checkout used by the document-parsing Track.
+/document-parsing/OmniDocBench/
 
 # Secrets and machine-local configuration.
 .env

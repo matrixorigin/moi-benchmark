@@ -13,7 +13,7 @@
 1. Astra、Memoria、文档解析、RAG、NLP2SQL 作为五个根级目录。
 2. 每个 Track 自己保存 plan、research、benchmark、datasets、systems、runs、reports、decisions 和 progress。
 3. `docs/` 只保存跨 Track 治理和旧混合材料。
-4. Astra、Hermes Agent、AgentOps 等本地第三方源码集中到 Git 忽略的 `external/`。
+4. 第三方源码不进入 Git；与单一 Track 直接相关的工具可保存在该 Track 内的 Git 忽略目录。文档解析使用的 OmniDocBench 位于 `document-parsing/OmniDocBench/`。
 
 ## 后果
 
