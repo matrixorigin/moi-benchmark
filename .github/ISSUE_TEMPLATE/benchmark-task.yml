@@ -1,0 +1,58 @@
+name: Benchmark work item
+description: Define a task, adapter, evaluator, dataset, harness, or report change.
+title: "[Benchmark] "
+labels: []
+body:
+  - type: dropdown
+    id: track
+    attributes:
+      label: Track
+      options:
+        - Astra
+        - NLP2SQL
+        - Shared infrastructure
+        - Governance and reporting
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Task and oracle
+        - Adapter
+        - Evaluator
+        - Dataset
+        - Harness and infrastructure
+        - Research and decision
+        - Report
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and evidence
+      description: State the gap and link the plan, ADR, source, or prior run that demonstrates it.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Describe included work and explicit non-goals.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Use observable, reproducible checks.
+    validations:
+      required: true
+  - type: textarea
+    id: comparability
+    attributes:
+      label: Comparability and data impact
+      description: Explain effects on task versions, historical results, fairness, privacy, or security.
+    validations:
+      required: true

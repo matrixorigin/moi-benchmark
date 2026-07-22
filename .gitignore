@@ -1,0 +1,37 @@
+# Local external source checkouts; provenance is tracked in systems/manifest.yaml.
+/agentops/
+/astra/
+/hermes-agent/
+/external/
+
+# Secrets and machine-local configuration.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS, editors and language caches.
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+node_modules/
+target/
+
+# Downloaded, private or generated dataset payloads.
+/datasets/downloads/
+/datasets/private/
+/datasets/generated/
+/datasets/**/raw/
+
+# Raw run artifacts stay in controlled artifact storage. Commit manifests and summaries.
+/runs/**/raw/
+/runs/**/logs/
+/runs/**/traces/
+/artifacts/
+/.cache/

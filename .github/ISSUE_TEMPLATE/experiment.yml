@@ -1,0 +1,45 @@
+name: Experiment run
+description: Plan a benchmark run before execution.
+title: "[Experiment] "
+labels:
+  - experiment
+body:
+  - type: input
+    id: hypothesis
+    attributes:
+      label: Hypothesis or purpose
+      placeholder: What question will this run answer?
+    validations:
+      required: true
+  - type: textarea
+    id: frozen_inputs
+    attributes:
+      label: Frozen inputs
+      description: List task set, systems, models, datasets, configs, evaluator, environment, budgets, and repetitions.
+    validations:
+      required: true
+  - type: textarea
+    id: gates
+    attributes:
+      label: Validity and safety gates
+      description: Define abort, invalidation, privacy, security, and environment-error criteria before seeing results.
+    validations:
+      required: true
+  - type: textarea
+    id: outputs
+    attributes:
+      label: Expected records
+      description: State the planned run_id pattern, artifact location, review sample, and report destination.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-run checklist
+      options:
+        - label: Versions and task sampling are frozen before results are inspected.
+          required: true
+        - label: Private data and credentials will not enter Git or public artifacts.
+          required: true
+        - label: Environment and evaluator failures can be separated from product failures.
+          required: true

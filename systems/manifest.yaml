@@ -1,0 +1,57 @@
+schema_version: 1
+snapshot_date: "2026-07-22"
+phase: exploratory
+frozen: false
+
+systems:
+  - id: astra
+    role: system_under_test
+    source: https://github.com/matrixorigin/astra.git
+    revision: 9bf87cbede29bfaa7f12ebec978a71a4c9e7ec84
+    local_path: astra
+    working_tree: modified
+    reproducible: false
+    local_changes:
+      - Dockerfile
+      - deployment/all-in-one/docker-compose.yml
+    note: Must freeze a clean revision or a hashed patch before a reportable run.
+
+  - id: hermes-agent
+    role: astra_direct_comparator
+    source: https://github.com/NousResearch/hermes-agent.git
+    revision: f4df260f26c93f15694698869f3ea8e965eea301
+    local_path: hermes-agent
+    working_tree: clean
+    reproducible: provisional
+
+  - id: agentops
+    role: observability_reference_only
+    source: https://github.com/AgentOps-AI/agentops.git
+    revision: f8e907b92dabe47232978023fdcb01e2a7d4b752
+    local_path: agentops
+    working_tree: modified
+    reproducible: false
+    local_changes:
+      - app/compose.yaml
+      - app/opentelemetry-collector/compose.yaml
+    note: Reference platform; not in the Astra product leaderboard.
+
+planned_systems:
+  - id: codex
+    role: astra_direct_comparator
+    revision: null
+  - id: goose
+    role: astra_direct_comparator
+    revision: null
+  - id: moi-nlp2sql
+    role: system_under_test
+    revision: null
+  - id: db-gpt
+    role: nlp2sql_product_comparator
+    revision: null
+  - id: xiyan-sql
+    role: nlp2sql_method_comparator
+    revision: null
+  - id: reforce
+    role: nlp2sql_method_comparator
+    revision: null
