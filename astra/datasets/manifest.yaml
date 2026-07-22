@@ -1,0 +1,183 @@
+schema_version: 1
+track: astra
+snapshot_date: "2026-07-22"
+frozen: false
+
+audited_candidates:
+  - id: deepplanning-v1.1
+    role: p1_planning_diagnostic
+    decision: conditional_include
+    source: https://huggingface.co/datasets/Qwen/DeepPlanning
+    source_revision: 213876cce679f993a476d01042e13d111c0e3648
+    license_declared: Apache-2.0
+    total_download_size: 104 MB
+    domains:
+      - id: travel
+        unique_tasks: 120
+        variants: [zh, en]
+        tools: 9
+        evaluator: llm_format_conversion_then_rule_checks
+      - id: shopping
+        unique_tasks: 120
+        variants: [en]
+        tools: 15
+        evaluator: rule_based_cart_matching
+    code_source: https://github.com/QwenLM/Qwen-Agent/tree/main/benchmark/deepplanning
+    code_revision: null
+    official_version: v1.1
+    primary_dimensions: [dynamic_planning, information_acquisition, constrained_reasoning, global_optimization]
+    excluded_from: [p0_state_control_score, security_score, recovery_score]
+    freeze_blockers:
+      - Pin the Qwen-Agent code revision and evaluator container digest.
+      - Record SHA256 for every downloaded archive.
+      - Freeze the qwen-plus conversion model and endpoint used for Travel.
+      - Locally replay Shopping and Travel evaluators on fixed fixtures.
+      - Complete equivalent Astra, Hermes, and Goose runner smoke tests.
+    notes:
+      - Travel language variants share the same 120 underlying tasks and require paired analysis.
+      - The official harness is model-oriented; MOI product runners are a derived implementation.
+  - id: terminal-bench-2.1
+    role: p1_terminal_external_comparability
+    decision: include_in_pilot_after_freeze
+    source: https://github.com/harbor-framework/terminal-bench-2-1
+    source_revision: null
+    official_dataset: terminal-bench/terminal-bench-2-1
+    official_version: "2.1"
+    license_declared: Apache-2.0
+    task_count: 89
+    evaluator: task_specific_programmatic_tests
+    primary_dimensions: [terminal_execution, artifact_correctness, task_completion]
+    excluded_from: [p0_state_control_score, security_score, recovery_score]
+    freeze_blockers:
+      - Pin the task repository commit and Harbor dataset revision instead of using latest.
+      - Pin every environment image digest and record network policy and hardware limits.
+      - Validate the selected eight Pilot tasks with oracle and frontier-agent replays.
+      - Complete equivalent Astra, Hermes, and Goose Harbor adapter smoke tests.
+    notes:
+      - The official release article says 28 of 89 tasks changed from 2.0, while the repository README says 26; freeze the exact artifacts rather than relying on either count.
+      - The MOI three-trial Pilot is not an official leaderboard submission; the official repository requires at least five trials per task for submission.
+  - id: swe-bench-live
+    role: p1_repository_issue_resolution
+    decision: include_in_pilot_after_split_freeze
+    source: https://github.com/microsoft/SWE-bench-Live
+    source_revision: null
+    candidate_release: v1.0-multi-language-multi-os-benchmarking
+    candidate_split: null
+    license_declared: MIT
+    published_snapshots:
+      initial_python: 1319
+      initial_python_lite: 300
+      multilingual_linux: 743
+      windows: 61
+    evaluator: dockerized_fail_to_pass_and_pass_to_pass_tests
+    primary_dimensions: [repository_navigation, code_editing, regression_avoidance]
+    excluded_from: [p0_state_control_score, security_score, multi_tenant_isolation]
+    freeze_blockers:
+      - Choose one frozen release and split; do not sample from the moving full split.
+      - Pin repository base commits, test patches, environment images, and evaluator code.
+      - Select four Pilot tasks with explicit repository, language, and difficulty strata.
+      - Complete equivalent runner smoke tests and verify patch extraction.
+    notes:
+      - Python, multilingual Linux, and Windows releases use different evaluation paths and must not be merged into one score without a declared design.
+      - This benchmark measures issue resolution, not durable session ownership or crash recovery.
+  - id: mcp-universe
+    role: p1_mcp_specialist_gate
+    decision: conditional_include_as_separate_specialist_module
+    source: https://github.com/SalesforceAIResearch/MCP-Universe
+    source_revision: null
+    official_version: v1.1.3
+    license_declared: Apache-2.0
+    task_count: 231
+    domain_count: 6
+    mcp_server_count: 11
+    tool_count: 133
+    unique_evaluator_count: 84
+    evaluator: format_static_and_dynamic_execution_evaluators_without_llm_judge
+    primary_dimensions: [mcp_discovery, tool_composition, schema_use, executable_outcome]
+    excluded_from: [crash_recovery, exactly_once_side_effects, multi_tenant_isolation]
+    freeze_blockers:
+      - Pin the framework commit, MCP server implementations, dependencies, and task subset.
+      - Separate deterministic local or static tasks from live-service tasks in all reports.
+      - Freeze credentials policy, network policy, time window, rate limits, and retry budgets.
+      - Verify equivalent tool schemas and result payloads through all three product adapters.
+    notes:
+      - Live external services introduce temporal drift, authentication, quota, and availability confounds.
+      - Modified fault-injection cases are MOI-derived tests and must not be reported as official MCP-Universe scores.
+  - id: agentdojo
+    role: security_specialist_gate
+    decision: conditional_include_as_separate_security_module
+    source: https://github.com/ethz-spylab/agentdojo
+    source_revision: null
+    package_version: v0.1.35
+    benchmark_version: v1.2.2
+    license_declared: MIT
+    paper_snapshot:
+      utility_tasks: 97
+      security_test_cases: 629
+    evaluator: simulated_environment_utility_and_injection_goal_checks
+    primary_dimensions: [clean_utility, utility_under_attack, indirect_prompt_injection_security]
+    excluded_from: [cloud_edge_path_security, identity_scope_integrity, crash_recovery]
+    freeze_blockers:
+      - Pin both the package release and benchmark version; they are separate version axes.
+      - Enumerate the selected benchmark version locally instead of reusing paper-era task counts.
+      - Implement identical tool, attack-content, and approval surfaces for all three products.
+      - Hold model, tool, retry, and defense budgets constant across clean and attack runs.
+    notes:
+      - Report clean utility, utility under attack, and security success separately; never average them into normal task success.
+      - The paper counts describe its published snapshot and are not asserted as the current v1.2.2 counts.
+  - id: gaia
+    role: p2_general_assistant_sanity_check
+    decision: defer_from_mvp
+    source: https://huggingface.co/datasets/gaia-benchmark/GAIA
+    source_revision: null
+    scorer_source: https://huggingface.co/spaces/gaia-benchmark/leaderboard/blob/main/scorer.py
+    scorer_revision: 9cf03f3b45701bece6729932dad15ebb39d0f99e
+    license_declared: null
+    access: gated_with_non_redistribution_terms
+    paper_task_count: 466
+    evaluator: normalized_boundary_match_with_numeric_bag_of_words_check
+    primary_dimensions: [general_assistance, web_research, multimodal_tool_use]
+    excluded_from: [mvp_pilot, p0_state_control_score, product_control_plane_score]
+    freeze_blockers:
+      - Resolve dataset-use and artifact-redistribution terms before packaging any fixtures.
+      - Pin the gated dataset revision, scorer revision, attachments, and selected split.
+      - Define a contamination policy because public validation answers are exposed.
+      - Standardize web access, browser tools, attachment handling, and collection time.
+    notes:
+      - The official scorer is not strict exact match; preserve its normalization and boundary logic.
+      - Withheld test answers require the official evaluation path, while public validation has contamination risk.
+  - id: tau3-bench
+    source: https://github.com/sierra-research/tau2-bench
+    role: p1_policy_tool_user_interaction
+    decision: conditional_phase_2
+    source_revision: null
+    candidate_version: v1.0.1
+    project_lineage: formerly_tau2_bench_now_tau3_bench
+    license_declared: MIT
+    candidate_domains: [airline, retail, telecom]
+    interaction_mode: text_half_duplex
+    evaluator: environment_state_database_and_action_reward_with_pass_k
+    primary_dimensions: [clarification, policy_compliance, shared_state_mutation, interactive_reliability]
+    excluded_from: [mvp_pilot, crash_recovery, durable_checkpointing]
+    freeze_blockers:
+      - Pin the v1.0.1-or-later code commit and enumerate task counts from that exact checkout.
+      - Freeze user-simulator model, version, prompt, temperature, seed policy, and turn budget.
+      - Use text half-duplex only for the first comparison and keep voice results separate.
+      - Verify reward functions and replay a stratified sample from each selected domain.
+    notes:
+      - Results before and after the v1.0.1 banking_knowledge grading update are not fully comparable for that domain.
+      - The LLM user simulator is a second stochastic agent and a major source of variance.
+
+pending_candidates: []
+
+excluded_references:
+  - id: openviking
+    source: https://github.com/volcengine/OpenViking
+    classification: context_database_not_dataset_or_competitor
+    allowed_uses: [benchmark_method_reference, optional_common_context_backend]
+    restrictions:
+      - Do not treat vendor-reported benchmark numbers as independent evidence.
+      - Separate Hermes native integration from generic MCP integration effects.
+      - Review AGPLv3 obligations before redistribution or hosted modifications.
+
+note: Audited means a first-pass availability and validity review, not benchmark readiness. No candidate may enter a scored run until its freeze blockers are closed and immutable artifacts are recorded.
