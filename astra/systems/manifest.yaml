@@ -14,8 +14,12 @@ local_sources:
     role: comparator_candidate
     source: https://github.com/NousResearch/hermes-agent.git
     revision: f4df260f26c93f15694698869f3ea8e965eea301
+    release_descriptor: v2026.7.20-63-gf4df260f2
     local_path: external/hermes-agent
     working_tree: clean
+    runner_constraints:
+      - Do not use hermes one-shot mode for approval, permission, or security cases because it enables YOLO and auto-accepts hooks.
+      - Distinguish transcript resume and filesystem checkpointing from verified in-flight side-effect recovery.
   - id: agentops
     role: observability_reference
     source: https://github.com/AgentOps-AI/agentops.git
@@ -23,4 +27,19 @@ local_sources:
     local_path: external/agentops
     working_tree: modified
 
-note: Candidate roles and versions remain unapproved until the Astra plan review is complete.
+pending_sources:
+  - id: goose
+    role: comparator_candidate
+    source: https://github.com/aaif-goose/goose.git
+    candidate_release: v1.43.0
+    revision: 5a9eb7edea1e081e2d54473ae41481f0289b826a
+    revision_evidence: web_verified_release_not_local_checkout
+    local_path: null
+    working_tree: not_checked_out
+    freeze_blocker: true
+    runner_constraints:
+      - Use ACP or another approval-capable product interface for permission and cancellation cases.
+      - Freeze GOOSE_MODE, context strategy, sandbox policy, extensions, and isolated GOOSE_PATH_ROOT per run.
+    note: The official release is a candidate pin only. The local shallow clone timed out, so source inspection and adapter smoke tests remain mandatory before any scored run.
+
+note: Candidate roles and versions remain unapproved until the Astra plan review is complete. Goose has a web-verified candidate release but is not locally checked out or benchmark-ready.
