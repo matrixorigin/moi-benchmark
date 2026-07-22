@@ -9,7 +9,7 @@
 | 工作流 | 状态 | 已有证据 | 下一门槛 |
 |---|---|---|---|
 | 仓库治理 | 进行中 | 目录、路线图、ADR 与 GitHub 模板已建立 | 建立远端 repo、milestones、labels 与责任人 |
-| Astra | 设计基线就绪 | v0.2 计划、博客优势证据、竞品与 adapter 可行性分析 | 冻结产品 commit、Pilot Case 与 Runner 合约 |
+| Astra | 设计基线就绪 | v0.2 计划、三项技术差异证据、竞品与 adapter 可行性分析 | 冻结产品 commit、Pilot Case 与 Runner 合约 |
 | NLP2SQL | 设计基线就绪 | v0.1 计划、竞品/数据集/指标调研 | 确认 MOI 接口与方言，冻结不超过 30 个 Smoke Case |
 | 数据治理 | 未开始 | 已定义只提交 manifest 的仓库规则 | 建立公开/私有数据 manifest、许可证与脱敏规则 |
 | Benchmark 实现 | 未开始 | 已定义目标目录边界 | 建立 schema、harness、adapters 与 evaluators |

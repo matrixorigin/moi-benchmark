@@ -4,7 +4,7 @@
 > 日期：2026-07-21  
 > 状态：可执行设计基线；参评版本与任务实例仍需冻结
 > 文档角色：Astra Track 的当前执行计划。
-> 优势证据与差异化建议：[Astra 博客证据与 Benchmark 差异化分析](../research/astra-blog-advantage-analysis.md)。
+> 技术差异证据与专项 Benchmark 建议：[Astra 技术差异与 Benchmark 设计](../research/astra-blog-advantage-analysis.md)。
 
 ## 1. 目标与范围
 
