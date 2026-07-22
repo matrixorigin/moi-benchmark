@@ -13,6 +13,15 @@
 3. **NLP2SQL**：比较各产品在真实业务表上的 SQL 生成、执行正确性和安全性。
 4. **文档解析**：比较 MOI 与主流解析工具在公开数据集和行业文档上的解析质量。
 
+首版对比对象统一如下：
+
+| Track | 被评测对象 | 首版核心对比对象 | 候补或扩展对象 | 首版对比方式 |
+|---|---|---|---|---|
+| Memory | Memoria | Mem0、Zep | 暂无 | 实际运行 Memoria；Mem0、Zep 使用论文或官方公开结果作外部参考 |
+| RAG | MOI RAG | Dify、FastGPT | RAGFlow | 各产品使用同一批原始文件独立建库并实际运行端到端问答 |
+| NLP2SQL | MOI NLP2SQL | Wren AI Cloud、Chat2DB、XiYan GBI | Vanna OSS、DB-GPT | 核心对象先参加 Smoke，再从中选出 2～3 个与 MOI 进行正式实测；候补仅在核心对象无法有效接入时启用 |
+| 文档解析 | MOI 解析后端 | MinerU、PaddleOCR/PP-StructureV3 | olmOCR、Marker | MOI 实跑公开集和私有集；竞品优先使用官方 API，时间不足时公开集可引用官方公开分数并披露限制 |
+
 四个 Track 统一遵循以下原则：
 
 - 区分本项目实测结果和竞品公开结果。
@@ -38,6 +47,13 @@
 - 特性数据集：围绕版本操作、冲突处理和隔离治理构造确定性用例。
 - 第一阶段只实际运行 Memoria；Mem0 和 Zep 使用论文或官方公开结果作为外部参考，不重新运行。
 
+#### 对比对象与口径
+
+- **被评测对象**：Memoria。
+- **核心对比对象**：Mem0、Zep。
+- **对比方式**：首版不调用 Mem0、Zep 服务，仅将其论文或官方公开成绩列为外部参考；Memoria 结果属于本项目实测，二者不表述为严格同条件排名。
+- **差异化能力对比**：快照/回滚、分支/Diff/Merge、矛盾处理和隔离治理等特性以 Memoria 的确定性用例验证为主；若竞品没有对应公开能力或可执行接口，则标记为“未验证”，不直接判为零分。
+
 #### 主要指标
 
 - 公开集：QA 正确率、类别分数、检索与回答成功率、时延及 Token 成本。
@@ -62,6 +78,14 @@
 - 首版语料：当前已整理的 47 份原始文档，正式运行前冻结清单和哈希。
 - 测试集：自动生成并通过程序化校验的 150～300 条问题，划分开发集与隐藏测试集，不安排逐题人工审核。
 - 第一阶段产品：MOI、Dify、FastGPT；RAGFlow 作为后续增强项。
+
+#### 对比对象与口径
+
+- **被评测对象**：MOI RAG。
+- **核心对比对象**：Dify、FastGPT。
+- **扩展对象**：RAGFlow，仅在首版完成后且时间允许时补充，不计入首版必交范围。
+- **对比方式**：MOI、Dify、FastGPT 使用相同原始语料和同一测试集分别独立建库，保留各产品原生解析、分段、Embedding、检索、重排和生成链路，进行端到端产品实测。
+- RAGAS、DeepEval 等仅作为评测工具，不属于本 Track 的竞品。
 
 #### 主要指标
 
@@ -89,6 +113,14 @@
 - 将现有约 10 条问题作为起点，扩充并冻结 50～60 条人工验真的测试题。
 - 候选竞品优先 Wren AI、Chat2DB、XiYan；根据 Smoke 结果选择 2～3 个正式竞品。Vanna、DB-GPT 作为替补。
 
+#### 对比对象与口径
+
+- **被评测对象**：MOI NLP2SQL。
+- **核心 Smoke 对象**：Wren AI Cloud、Chat2DB、XiYan GBI。
+- **正式对比对象**：从上述三个核心对象中，根据数据库连通性、结果有效性和运行可复现性选出 2～3 个，与 MOI 完成 50～60 题正式实测。
+- **候补对象**：Vanna OSS、DB-GPT；仅当核心对象无法形成至少两个有效竞品时启用。
+- **不纳入本轮产品横评**：XiYan-SQL 模型本身；如需评估，应另建 Text-to-SQL 方法评测，不能与 XiYan GBI 产品结果混用。
+
 #### 主要指标
 
 - Execution Accuracy、First-pass Success、Final Success。
@@ -115,6 +147,14 @@
 - 私有集：首版建设 20～50 个复杂表格、跨页表、公式、图文 Caption、多栏、扫描件、标题层级和行业术语 Case。
 - 竞品：MinerU、Paddle/PP-StructureV3，并视时间补充 olmOCR、Marker 等。
 - 第一阶段优先使用竞品官方 API；是否同环境重跑竞品取决于时间。
+
+#### 对比对象与口径
+
+- **被评测对象**：MOI 解析后端。
+- **核心对比对象**：MinerU、PaddleOCR/PP-StructureV3。
+- **扩展对象**：olmOCR、Marker，时间允许时补充。
+- **公开集对比**：MOI 在 OmniDocBench 上实际运行官方评分器；MinerU、PaddleOCR/PP-StructureV3 优先通过官方 API 同集实跑，时间不足时可引用版本和配置明确的官方公开成绩，但必须与实测结果分栏展示。
+- **私有集对比**：MOI、MinerU、PaddleOCR/PP-StructureV3 对同一批私有 Case 实际运行，通过 Adapter 统一到内部 Parse Blocks 后评分；olmOCR、Marker 是否加入私有集取决于时间。
 
 #### 主要指标
 
