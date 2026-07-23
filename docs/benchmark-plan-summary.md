@@ -1,18 +1,19 @@
-# MOI Benchmark 五 Track 初步计划汇总
+# MOI Benchmark 六 Track 初步计划汇总
 
-> 范围：Astra、Memory、RAG、NLP2SQL、文档解析
+> 范围：Astra、Memory、RAG、NLP2SQL、文档解析、文档信息提取
 > 文档状态：初步规划汇总，具体配置和预算需在 Smoke 阶段后冻结
 > 汇总日期：2026-07-22
 
 ## 1. 总体目标
 
-本阶段围绕 MOI 的五项核心能力建立可复现的 Benchmark：
+本阶段围绕 MOI 的六项核心能力建立可复现的 Benchmark：
 
 1. **Astra**：比较通用 Agent 的短任务基线、长任务稳定性、故障恢复和审计能力。
 2. **Memory**：验证 Memoria 的长期记忆问答效果和 Git-like 记忆治理能力。
 3. **RAG**：比较 MOI 与主流知识库产品的原生端到端问答质量。
 4. **NLP2SQL**：比较各产品在真实业务表上的 SQL 生成、执行正确性和安全性。
 5. **文档解析**：比较 MOI 与主流解析工具在公开数据集和行业文档上的解析质量。
+6. **文档信息提取**：比较 MOI 与商业产品基于预定义业务 Schema 提取结构化字段的质量、效率和成本。
 
 首版对比对象统一如下：
 
@@ -23,8 +24,9 @@
 | RAG | MOI RAG | Dify、FastGPT | RAGFlow | 各产品使用同一批原始文件独立建库并实际运行端到端问答 |
 | NLP2SQL | MOI NLP2SQL | Wren AI Cloud、Chat2DB、XiYan GBI | Vanna OSS、DB-GPT | 核心对象先参加 Smoke，再从中选出 2～3 个与 MOI 进行正式实测；候补仅在核心对象无法有效接入时启用 |
 | 文档解析 | MOI 解析后端 | MinerU、PaddleOCR/PP-StructureV3 | olmOCR、Marker | MOI 实跑公开集和私有集；竞品优先使用官方 API，时间不足时公开集可引用官方公开分数并披露限制 |
+| 文档信息提取 | MOI 文档信息提取 | LandingAI Agentic Document Extraction | 暂无 | 两个产品使用相同源文件、业务 Schema、Golden 和评分规则，分别从原始文档端到端实际运行 |
 
-五个 Track 统一遵循以下原则：
+六个 Track 统一遵循以下原则：
 
 - 区分本项目实测结果和竞品公开结果。
 - 数据、配置、模型、版本、运行命令和原始结果可追溯。
@@ -205,9 +207,46 @@
 - MinerU/Paddle 等到内部 Parse Blocks 的 Adapter。
 - 人工审核后的私有 Golden、统一 Runner、评分结果和失败案例报告。
 
-### 2.6 测试集建设要求
+### 2.6 文档信息提取
 
-五个 Track 中，只有公开 Benchmark 部分可以直接使用现成数据和 Golden；涉及 MOI 差异化能力或真实业务效果的部分，需要自行构建测试集。
+详细方案：[MOI vs LandingAI 文档信息提取产品对比测评计划](../document-extracting/plans/drafts/v0.1.md)
+
+#### 评测目标
+
+- 在相同原始文档、预定义业务 Schema 和评分规则下，比较 MOI 与 LandingAI 的字段提取准确率、完整率和幻觉情况。
+- 覆盖低质量收据、多模板表单和多页法律合同三类场景，分析两个产品的能力边界。
+- 比较 Schema 适配、批处理、异常处理、结果溯源、时延、调用成本和人工操作成本。
+
+#### 数据与对象
+
+- SROIE：100 份单页扫描收据，4 个固定字段。
+- VRDU Registration：100 份、约 202 页的多模板注册表单，6 个固定字段。
+- Kleister-NDA：100 份、约 602 页的多页法律合同，4 个固定字段，其中 `party` 为数组。
+- 正式集共 300 份、约 904 页；三个数据集分别冻结 Manifest、Schema、源文件哈希和 Golden Adapter。
+
+#### 对比对象与口径
+
+- **被评测对象**：MOI 文档信息提取。
+- **核心对比对象**：LandingAI Agentic Document Extraction。
+- **对比方式**：两个产品均从相同 PDF/JPG/PNG 原始文件开始，使用语义等价的预定义 Schema；产品输出 Adapter 只转换格式，不修复或补全结果。
+- **运行口径**：先完成 9 份 Smoke 和 30 份 Pilot，再冻结配置运行 300 份正式集；字段错误不允许重试选优，主质量分采用第一次有效业务响应。
+- **发布边界**：正式运行及公开发布前需确认 LandingAI 关于 benchmarking/competitive analysis 的合同权限；未确认时只进行内部小规模功能验证。
+
+#### 主要指标
+
+- 字段级 Precision/Recall/F1、Normalized Exact Match、文档全字段正确率、缺失字段正确率和幻觉率。
+- Schema 合法率、API/任务成功率、逐字段及场景切片结果，并对产品差异进行配对分析。
+- P50/P95 时延、总运行时间、每文档/页成本、Schema 配置和异常处理人工时间。
+
+#### 主要交付
+
+- 三个 100 Case Manifest、中立业务 Schema、Golden Adapter 和统一 Scorer。
+- MOI、LandingAI Runner 与输出 Adapter，以及可追溯的原始响应、usage、日志和统一结果。
+- 总体、逐数据集、逐字段、场景切片和一对一 Case 对比报告。
+
+### 2.7 测试集建设要求
+
+六个 Track 中，只有公开 Benchmark 部分可以直接使用现成数据和 Golden；涉及 MOI 差异化能力或真实业务效果的部分，需要自行构建测试集。
 
 | Track | 可直接使用的测试集 | 需要自行构建的测试集 | 首版规模 | Golden/标注要求 |
 |---|---|---|---:|---|
@@ -216,6 +255,7 @@
 | RAG | 无直接满足当前端到端产品横评目标的现成测试集 | 基于当前 47 份原始文档构建开发集和隐藏测试集 | 150～300 题 | 每题包含问题、参考答案、Gold 文件及证据位置；采用去重、证据包含、答案支持性和泄漏检查等自动校验，不安排逐题人工审核 |
 | NLP2SQL | 第一阶段不采用公开集 | 基于现有 MatrixOne 真实业务表构建私有测试集 | 50～60 题；现有约 10 题作为起点 | 每题编写并执行 Golden SQL，保存稳定的 Golden 结果；逐题人工验证业务口径，开发题和隐藏题按题族隔离 |
 | 文档解析 | OmniDocBench v1.6 及其官方 Golden | 复杂行业文档私有 Case 集 | 20～50 个 Case | 可从 Parser 输出生成 Draft，但必须人工校正；Golden 覆盖文字、布局、表格、公式、图片/Caption、标题层级和阅读顺序 |
+| 文档信息提取 | SROIE、VRDU Registration、Kleister-NDA 的公开源文件和标注 | 不新标注业务文档；需自行抽样并构建三个 100 Case Manifest、中立 Schema、Golden Adapter 和统一归一化规则 | 300 份、约 904 页 | Golden 来自公开数据集标注，经 Adapter 映射为固定字段 Schema；不得参考 MOI 或 LandingAI 输出修改 Golden，争议标注需单独留痕 |
 
 #### 自建测试集通用流程
 
@@ -234,6 +274,7 @@
 - RAG 的 150～300 条问题、答案和证据自动生成及程序化校验。
 - NLP2SQL 的 40～50 条新增问题及全部 Golden SQL 执行验证。
 - 文档解析 20～50 个行业 Case 的元素级人工校正。
+- 文档信息提取三个 100 Case Manifest、固定 Schema、Golden Adapter 和归一化规则；无需重新人工标注 300 份文档，但需处理公开 Golden 噪声和争议样本。
 - Memory 三组差异化能力的状态型 Case 和程序化断言。
 
 相关人天已计入后续工作量表。NLP2SQL 和私有解析仍需人工验证 Golden；RAG 改为自动生成和程序化校验，并在报告中披露由此带来的测试集质量风险。
@@ -244,7 +285,7 @@
 
 - 人天按所有参与人员的实际投入合并计算，不区分主执行和配合角色。
 - 不包含账号审批、网络开放、采购和跨团队排队等待时间。
-- 本汇总按三个资源包分别封顶 15 人天：Astra；Memory + 文档解析；RAG + NLP2SQL。
+- 本汇总保留三个既定资源包各 15 人天：Astra；Memory + 文档解析；RAG + NLP2SQL。文档信息提取作为新增独立工作包，严格限制为 5 人天。
 - 各 Track 详细计划中的原始工期和运行规模是完整方案参考；若超过本汇总的人天上限，应在 Smoke 后缩小首版范围并记录未完成项，不降低评分标准或混淆 Pilot 与正式结果。
 - 不包含后续长期回归平台化和大规模性能压测。
 
@@ -257,14 +298,17 @@
 | 文档解析 | **7** | 复用 OmniDocBench，完成 MOI Adapter、竞品 API、代表性私有 Case、评分与报告 |
 | RAG | **8** | 语料冻结、测试题自动生成与校验、三个产品建库、运行、自动评分与报告 |
 | NLP2SQL | **7** | 数据与权限、私有 Golden、竞品 Smoke 与筛选、正式运行、复核与报告 |
-| **合计** | **45** | Astra 15；Memory + 文档解析 15；RAG + NLP2SQL 15 |
+| 文档信息提取 | **5** | 300 Case Manifest、Schema 与 Golden Adapter、两个产品 Runner、统一 Scorer、Smoke/Pilot、正式运行、分层复核与报告 |
+| **合计** | **50** | Astra 15；Memory + 文档解析 15；RAG + NLP2SQL 15；文档信息提取 5 |
 
 ### 3.3 排期建议
 
-- 按一人等效投入串行完成：45 个工作日，约 9 个工作周。
-- 三个资源包并行、每包一人等效投入：约 15 个工作日；账号审批、环境阻塞和长任务实际运行等待时间另计。
+- 按一人等效投入串行完成：50 个工作日，约 10 个工作周。
+- 四个资源包并行、每包一人等效投入：约 15 个工作日；文档信息提取严格按 5 个工作日排期，账号/条款审批、环境阻塞和实际运行等待时间另计。
 - Astra v0.3 原始完整方案为 20 个工作日、390 次产品运行和 60 次夹具回放；15 人天约束下，优先保证任务/Oracle、Runner、Smoke 和有效 Pilot，未达到原定重复次数时只报告 Pilot，不包装为正式版结果。
-- 建议三条工作流并行：Astra；Memory + 文档解析；RAG + NLP2SQL。组内根据账号和数据准备情况穿插执行。
+- 建议四条工作流并行：Astra；Memory + 文档解析；RAG + NLP2SQL；文档信息提取。组内根据账号和数据准备情况穿插执行。
+
+文档信息提取的 5 天依次用于数据与 Golden、两个 Runner、Scorer 与 Pilot、正式运行、分层复核与报告。首版不增加数据集或竞品；分歧 Case 过多时采用分层抽样复核，不能通过降低 Golden 校验、Smoke 或评分标准压缩时间。
 
 NLP2SQL 和私有解析 Golden 的人工验证仍是主要人力风险。RAG 不做逐题人工审核，因此其结果必须明确标注测试集由模型生成并经程序化规则校验。
 
@@ -276,12 +320,13 @@ NLP2SQL 和私有解析 Golden 的人工验证仍是主要人力风险。RAG 不
 
 | Track | 初步预算 | 依据与不确定性 |
 |---|---:|---|
-| Astra | **¥2,500～¥4,000** | 三个产品的短任务、长任务、Common Model 资格运行、Astra 消融和必要重试；15 人天内按实际准入规模控制调用量 |
-| Memory | **¥700～¥1,400** | Memoria 的抽取/治理、Embedding、Reader、Judge 和必要重试；Mem0/Zep 不实际调用 |
-| 文档解析 | **¥200～¥600** | MinerU 暂按免费额度，Paddle 按页计费，并为私有 Case 与失败重试预留额度 |
-| RAG | **¥1,500～¥2,300** | 测试集生成、三个系统建库与问答、Embedding/rerank、自动 Judge 和重试 |
-| NLP2SQL | **¥1,000～¥1,700** | 模型 API、Wren/Chat2DB/XiYan 可能的订阅或 credits，以及竞品 Smoke |
-| **外部服务合计（含风险余量）** | **约 ¥5,900～¥10,000** | 总预算以 **¥10,000 为上限**；各 Track 可在总额内调剂，但不得同时按各自上限外追加准备金 |
+| Astra | **¥2,400～¥3,800** | 三个产品的短任务、长任务、Common Model 资格运行、Astra 消融和必要重试；15 人天内按实际准入规模控制调用量 |
+| Memory | **¥700～¥1,300** | Memoria 的抽取/治理、Embedding、Reader、Judge 和必要重试；Mem0/Zep 不实际调用 |
+| 文档解析 | **¥200～¥500** | MinerU 暂按免费额度，Paddle 按页计费，并为私有 Case 与失败重试预留额度 |
+| RAG | **¥1,400～¥2,200** | 测试集生成、三个系统建库与问答、Embedding/rerank、自动 Judge 和重试 |
+| NLP2SQL | **¥900～¥1,600** | 模型 API、Wren/Chat2DB/XiYan 可能的订阅或 credits，以及竞品 Smoke |
+| 文档信息提取 | **¥200～¥600** | LandingAI 2,000～2,500 credits 约 20～25 美元，扣除可能的免费额度后充值更低；另预留 MOI 调用和基础设施重试成本 |
+| **外部服务合计（含风险余量）** | **约 ¥5,800～¥10,000** | 新增文档信息提取后总预算仍以 **¥10,000 为上限**；各 Track 可在总额内调剂，但不得同时按各自上限外追加准备金 |
 
 预算表已经包含必要重试和风险余量，不再额外叠加统一准备金。实际报销和报告使用账单发生日汇率。
 
@@ -310,3 +355,4 @@ NLP2SQL 和私有解析 Golden 的人工验证仍是主要人力风险。RAG 不
 | RAG | 现有 MOI 环境；Dify/FastGPT 可先用已有或共享环境 | 外部模型/API 时不需要 |
 | NLP2SQL | 现有 MOI/MatrixOne、Cloud 网页版和桌面客户端 | 不需要 |
 | 文档解析 | API Runner 只需普通执行机和额外 4～10 GB 磁盘 | 不需要 |
+| 文档信息提取 | 普通 API Runner；建议 8 核 CPU、16 GB RAM、20 GB 空闲磁盘，用于约 904 页文件、双产品原始响应和评分结果 | MOI 与 LandingAI 均走现有服务/API 时不需要 |
