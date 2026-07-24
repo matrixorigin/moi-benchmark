@@ -1,12 +1,12 @@
-# MOI Benchmark 六 Track 初步计划汇总
+# MOI Benchmark 七 Track 初步计划汇总
 
-> 范围：Astra、Memory、RAG、NLP2SQL、文档解析、文档信息提取
+> 范围：Astra、Memory、RAG、NLP2SQL、文档解析、文档信息提取、Morpheus
 > 文档状态：初步规划汇总，具体配置和预算需在 Smoke 阶段后冻结
 > 汇总日期：2026-07-22
 
 ## 1. 总体目标
 
-本阶段围绕 MOI 的六项核心能力建立可复现的 Benchmark：
+本阶段围绕 MOI 的七项核心能力建立可复现的 Benchmark：
 
 1. **Astra**：比较通用 Agent 的短任务基线、长任务稳定性、故障恢复和审计能力。
 2. **Memory**：验证 Memoria 的长期记忆问答效果和 Git-like 记忆治理能力。
@@ -14,6 +14,7 @@
 4. **NLP2SQL**：比较各产品在真实业务表上的 SQL 生成、执行正确性和安全性。
 5. **文档解析**：比较 MOI 与主流解析工具在公开数据集和行业文档上的解析质量。
 6. **文档信息提取**：比较 MOI 与商业产品基于预定义业务 Schema 提取结构化字段的质量、效率和成本。
+7. **Morpheus**：验证结构化任务上的 adapter 效果，以及训练、评估、回放、门控、发布和回滚的受控自优化闭环。
 
 首版对比对象统一如下：
 
@@ -25,8 +26,9 @@
 | NLP2SQL | MOI NLP2SQL | Wren AI Cloud、Chat2DB、XiYan GBI | Vanna OSS、DB-GPT | 核心对象先参加 Smoke，再从中选出 2～3 个与 MOI 进行正式实测；候补仅在核心对象无法有效接入时启用 |
 | 文档解析 | MOI 解析后端 | MinerU、PaddleOCR/PP-StructureV3 | olmOCR、Marker | MOI 实跑公开集和私有集；竞品优先使用官方 API，时间不足时公开集可引用官方公开分数并披露限制 |
 | 文档信息提取 | MOI 文档信息提取 | LandingAI Agentic Document Extraction | 暂无 | 两个产品使用相同源文件、业务 Schema、Golden 和评分规则，分别从原始文档端到端实际运行 |
+| Morpheus | Morpheus 自优化闭环 | Base、LoRA-SFT、LoRA-SFT + Replay/Gate 三组内部 Baseline | GRPO、多轮自进化、完整 long-horizon Agent 留待后续 | 在相同冻结数据和基础模型下比较 Base、adapter 与完整闭环，验证效果增益、退化拦截和回滚能力；不做外部产品排名 |
 
-六个 Track 统一遵循以下原则：
+七个 Track 统一遵循以下原则：
 
 - 区分本项目实测结果和竞品公开结果。
 - 数据、配置、模型、版本、运行命令和原始结果可追溯。
@@ -244,9 +246,49 @@
 - MOI、LandingAI Runner 与输出 Adapter，以及可追溯的原始响应、usage、日志和统一结果。
 - 总体、逐数据集、逐字段、场景切片和一对一 Case 对比报告。
 
-### 2.7 测试集建设要求
+### 2.7 Morpheus
 
-六个 Track 中，只有公开 Benchmark 部分可以直接使用现成数据和 Golden；涉及 MOI 差异化能力或真实业务效果的部分，需要自行构建测试集。
+详细方案：[Morpheus 测评方案](../morpheus/plans/draft/morpheus-evaluation-plan.md)
+
+#### 评测目标
+
+- 验证 Morpheus 在结构化领域任务上训练出的 candidate adapter 是否相对 Base 和上一版 stable adapter 稳定提升。
+- 验证训练、评估、回放、门控、发布和回滚链路能否稳定、可复现、可审计地执行。
+- 检验 Replay/Gate 是否能拦截低质量或退化 adapter，并验证发布失败后的安全恢复能力。
+- 首版只证明受控的 adapter 级自优化闭环，不宣称已实现长期自主自进化或完整 Agent long-horizon 能力提升。
+
+#### 数据与对象
+
+- `train`：按结构化任务准备训练样本；仅在本轮覆盖训练链路时必需。
+- `holdout`：50～200 条，与训练集严格隔离，用于泛化和主效果评估。
+- `regression`：20～100 条历史核心、关键业务和已知风险样本，用于检查旧能力退化。
+- `replay`：20～100 条真实链路、高风险及 Hard Case，用于上线前风险验证。
+- 可选扩展：`trace_transition_eval`、`hardcase` 和 `reward_preflight`，不作为首版主结果的强制前置条件。
+
+#### 对比对象与口径
+
+- **被评测对象**：Morpheus 自优化与发布治理闭环。
+- **内部 Baseline**：Base、LoRA-SFT、LoRA-SFT + Replay/Gate、Self-Evolve v1。
+- **对比方式**：固定基础模型、冻结数据快照和评分逻辑，对 Base、candidate adapter、stable adapter 运行相同 Holdout、Regression 和 Replay；Gate/Release/Rollback 使用同一阈值和风险规则。
+- **外部竞品**：首版不设置外部产品竞品，因此结论只回答 Morpheus 相对内部 Baseline 的增益和治理价值，不表述为行业产品排名。
+- **后续增强**：GRPO、多轮自进化、Trace 决策和完整 Agent 长任务属于扩展项，不作为当前八个主指标的必要条件。
+
+#### 主要指标
+
+- 功能指标：`overall_score`、`schema_compliance`、`field_accuracy/action_quality`、`regression_pass_rate`、`replay_pass_rate`、`gate_verdict`。
+- 系统指标：`training_job_success_rate`、`rollback_success_rate`。
+- 扩展过程指标：`self_evolution_loop_completion_rate`，只证明计划轮次中闭环是否完成，不单独证明效果持续提升。
+
+#### 主要交付
+
+- 冻结的 `morpheus-eval-v1` Manifest，以及 Train/Holdout/Regression/Replay 数据快照和隔离说明。
+- Base、SFT、candidate、stable adapter 的离线评估结果和统一报告。
+- Replay/Gate/Release/Rollback 演练记录、失败分类和发布决策证据。
+- 数据、训练产物、adapter、评估、门控和发布结果可追溯的闭环报告。
+
+### 2.8 测试集建设要求
+
+七个 Track 中，只有公开 Benchmark 部分可以直接使用现成数据和 Golden；涉及 MOI 差异化能力或真实业务效果的部分，需要自行构建测试集。
 
 | Track | 可直接使用的测试集 | 需要自行构建的测试集 | 首版规模 | Golden/标注要求 |
 |---|---|---|---:|---|
@@ -256,6 +298,7 @@
 | NLP2SQL | 第一阶段不采用公开集 | 基于现有 MatrixOne 真实业务表构建私有测试集 | 50～60 题；现有约 10 题作为起点 | 每题编写并执行 Golden SQL，保存稳定的 Golden 结果；逐题人工验证业务口径，开发题和隐藏题按题族隔离 |
 | 文档解析 | OmniDocBench v1.6 及其官方 Golden | 复杂行业文档私有 Case 集 | 20～50 个 Case | 可从 Parser 输出生成 Draft，但必须人工校正；Golden 覆盖文字、布局、表格、公式、图片/Caption、标题层级和阅读顺序 |
 | 文档信息提取 | SROIE、VRDU Registration、Kleister-NDA 的公开源文件和标注 | 不新标注业务文档；需自行抽样并构建三个 100 Case Manifest、中立 Schema、Golden Adapter 和统一归一化规则 | 300 份、约 904 页 | Golden 来自公开数据集标注，经 Adapter 映射为固定字段 Schema；不得参考 MOI 或 LandingAI 输出修改 Golden，争议标注需单独留痕 |
+| Morpheus | 暂无可直接替代当前结构化业务闭环目标的统一公开集；Train 可按任务选用公开或业务数据 | 必须冻结 Train、Holdout、Regression、Replay 及 Manifest；可选构建 Trace Transition 和 Reward Preflight | Holdout 50～200、Regression 20～100、Replay 20～100；Train 按任务决定 | 各 Split 去重并严格隔离，记录来源、时间窗口和哈希；结构化样本需包含输入、Expected Output 和必要的决策约束，正式结果不能使用临时 Demo 数据 |
 
 #### 自建测试集通用流程
 
@@ -276,6 +319,7 @@
 - 文档解析 20～50 个行业 Case 的元素级人工校正。
 - 文档信息提取三个 100 Case Manifest、固定 Schema、Golden Adapter 和归一化规则；无需重新人工标注 300 份文档，但需处理公开 Golden 噪声和争议样本。
 - Memory 三组差异化能力的状态型 Case 和程序化断言。
+- Morpheus 的 Train/Holdout/Regression/Replay 数据快照、任务 Schema、Expected Output、风险标签和 Split 隔离检查。
 
 相关人天已计入后续工作量表。NLP2SQL 和私有解析仍需人工验证 Golden；RAG 改为自动生成和程序化校验，并在报告中披露由此带来的测试集质量风险。
 
@@ -286,6 +330,7 @@
 - 人天按所有参与人员的实际投入合并计算，不区分主执行和配合角色。
 - 不包含账号审批、网络开放、采购和跨团队排队等待时间。
 - 本汇总保留三个既定资源包各 15 人天：Astra；Memory + 文档解析；RAG + NLP2SQL。文档信息提取作为新增独立工作包，严格限制为 5 人天。
+- Morpheus 详细计划未给出明确人天；总计划按首版离线评测加一次闭环演练预留 10 人天，完成 Smoke 后再冻结，不包含真实业务长期试点和产品化补强。
 - 各 Track 详细计划中的原始工期和运行规模是完整方案参考；若超过本汇总的人天上限，应在 Smoke 后缩小首版范围并记录未完成项，不降低评分标准或混淆 Pilot 与正式结果。
 - 不包含后续长期回归平台化和大规模性能压测。
 
@@ -299,14 +344,16 @@
 | RAG | **8** | 语料冻结、测试题自动生成与校验、三个产品建库、运行、自动评分与报告 |
 | NLP2SQL | **7** | 数据与权限、私有 Golden、竞品 Smoke 与筛选、正式运行、复核与报告 |
 | 文档信息提取 | **5** | 300 Case Manifest、Schema 与 Golden Adapter、两个产品 Runner、统一 Scorer、Smoke/Pilot、正式运行、分层复核与报告 |
-| **合计** | **50** | Astra 15；Memory + 文档解析 15；RAG + NLP2SQL 15；文档信息提取 5 |
+| Morpheus | **10** | 数据快照与隔离、Base/SFT/Candidate 评估、Replay/Gate、一次 Release/Rollback 演练、结果汇总与报告 |
+| **合计** | **60** | Astra 15；Memory + 文档解析 15；RAG + NLP2SQL 15；文档信息提取 5；Morpheus 10 |
 
 ### 3.3 排期建议
 
-- 按一人等效投入串行完成：50 个工作日，约 10 个工作周。
-- 四个资源包并行、每包一人等效投入：约 15 个工作日；文档信息提取严格按 5 个工作日排期，账号/条款审批、环境阻塞和实际运行等待时间另计。
+- 按一人等效投入串行完成：60 个工作日，约 12 个工作周。
+- 分两个阶段执行时约 25 个工作日：第一阶段四个资源包并行，最长约 15 个工作日；第一阶段全部完成后，再串行执行 10 个工作日的 Morpheus 评测。账号/条款审批、环境阻塞、训练和实际运行等待时间另计。
 - Astra v0.3 原始完整方案为 20 个工作日、390 次产品运行和 60 次夹具回放；15 人天约束下，优先保证任务/Oracle、Runner、Smoke 和有效 Pilot，未达到原定重复次数时只报告 Pilot，不包装为正式版结果。
-- 建议四条工作流并行：Astra；Memory + 文档解析；RAG + NLP2SQL；文档信息提取。组内根据账号和数据准备情况穿插执行。
+- 第一阶段并行执行四条工作流：Astra；Memory + 文档解析；RAG + NLP2SQL；文档信息提取。组内根据账号、数据和算力准备情况穿插执行。
+- 第二阶段仅执行 Morpheus：必须在第一阶段其他评测全部完成、结果和资源释放后启动，不与其他 Track 并行。
 
 文档信息提取的 5 天依次用于数据与 Golden、两个 Runner、Scorer 与 Pilot、正式运行、分层复核与报告。首版不增加数据集或竞品；分歧 Case 过多时采用分层抽样复核，不能通过降低 Golden 校验、Smoke 或评分标准压缩时间。
 
@@ -320,13 +367,14 @@ NLP2SQL 和私有解析 Golden 的人工验证仍是主要人力风险。RAG 不
 
 | Track | 初步预算 | 依据与不确定性 |
 |---|---:|---|
-| Astra | **¥2,400～¥3,800** | 三个产品的短任务、长任务、Common Model 资格运行、Astra 消融和必要重试；15 人天内按实际准入规模控制调用量 |
+| Astra | **¥2,400～¥3,600** | 三个产品的短任务、长任务、Common Model 资格运行、Astra 消融和必要重试；15 人天内按实际准入规模控制调用量 |
 | Memory | **¥700～¥1,300** | Memoria 的抽取/治理、Embedding、Reader、Judge 和必要重试；Mem0/Zep 不实际调用 |
 | 文档解析 | **¥200～¥500** | MinerU 暂按免费额度，Paddle 按页计费，并为私有 Case 与失败重试预留额度 |
 | RAG | **¥1,400～¥2,200** | 测试集生成、三个系统建库与问答、Embedding/rerank、自动 Judge 和重试 |
 | NLP2SQL | **¥900～¥1,600** | 模型 API、Wren/Chat2DB/XiYan 可能的订阅或 credits，以及竞品 Smoke |
 | 文档信息提取 | **¥200～¥600** | LandingAI 2,000～2,500 credits 约 20～25 美元，扣除可能的免费额度后充值更低；另预留 MOI 调用和基础设施重试成本 |
-| **外部服务合计（含风险余量）** | **约 ¥5,800～¥10,000** | 新增文档信息提取后总预算仍以 **¥10,000 为上限**；各 Track 可在总额内调剂，但不得同时按各自上限外追加准备金 |
+| Morpheus | **¥0～¥200** | 首版复用现有 RTX 4090、数据库、对象存储和业务/Trace 数据，仅为必要的外部调用或小额辅助服务预留 |
+| **外部服务合计（含风险余量）** | **约 ¥5,800～¥10,000** | 新增 Morpheus 后总预算仍以 **¥10,000 为上限**；各 Track 可在总额内调剂，但不得同时按各自上限外追加准备金 |
 
 预算表已经包含必要重试和风险余量，不再额外叠加统一准备金。实际报销和报告使用账单发生日汇率。
 
@@ -356,3 +404,4 @@ NLP2SQL 和私有解析 Golden 的人工验证仍是主要人力风险。RAG 不
 | NLP2SQL | 现有 MOI/MatrixOne、Cloud 网页版和桌面客户端 | 不需要 |
 | 文档解析 | API Runner 只需普通执行机和额外 4～10 GB 磁盘 | 不需要 |
 | 文档信息提取 | 普通 API Runner；建议 8 核 CPU、16 GB RAM、20 GB 空闲磁盘，用于约 904 页文件、双产品原始响应和评分结果 | MOI 与 LandingAI 均走现有服务/API 时不需要 |
+| Morpheus | 复用现有训练机、MatrixOne/SQLite、MinIO/对象存储和日志存储；首版优先 1.5B/3B LoRA/QLoRA，训练与 vLLM 推理错峰运行 | 需要 1 张 RTX 4090 24GB；不安排 13B+ 全参训练或大规模 GRPO |
